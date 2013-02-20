@@ -1,12 +1,14 @@
 <?php
 /**
  * [Request_Client_External] Fire and Forget driver performs external requests
- * using the without waiting for response from the server.
+ * using the fsocketopen() function without the need to wait for response from
+ * the server.
  *
  * @package    Kohana
  * @category   FireAndForget
- * @author     Kohana Team
+ * @author     Michał Musiał
  * @copyright  (c) 2013 Michał Musiał
+ * @license    http://kohanaframework.org/license
  */
 class Request_Client_FireAndForget extends Request_Client_External {
 
