@@ -29,7 +29,7 @@ class Request_Client_FireAndForget extends Request_Client_External {
         {
             if ( ! ($http_body = $request->body()))
             {
-                $http_body = http_build_query($request->param());
+                $http_body = http_build_query($request->post());
                 $request->body($http_body);
             }
 
