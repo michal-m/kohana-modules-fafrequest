@@ -69,7 +69,7 @@ class Request_Client_FireAndForget extends Request_Client_External {
         catch (Exception $e)
         {
             // Silently log the error and return
-            Kohana_Exception::log($e);
+            Kohana::$log->add(Log::WARNING, Kohana_Exception::text($e));
             return $response;
         }
 
