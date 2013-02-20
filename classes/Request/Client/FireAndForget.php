@@ -52,7 +52,7 @@ class Request_Client_FireAndForget extends Request_Client_External {
 
         foreach ($request->headers() as $key => $value)
         {
-            $http_headers[] = $key . ': ' . $value;
+            $http_headers[] = ucfirst($key) . ': ' . $value;
         }
 
         // Build HTTP Request
