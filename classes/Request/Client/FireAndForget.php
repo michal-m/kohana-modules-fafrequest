@@ -19,6 +19,64 @@ class Request_Client_FireAndForget extends Request_Client_External {
 	 */
 	public function _send_message(Request $request, Response $response)
 	{
-		return $response;
+        $url_parts = parse_url($request->uri());
+        $ssl = (Arr::get($url_parts, 'scheme') === 'https');
+        $host = $url_parts['host'];
+        $port = ($ssl) ? Arr::get($url_parts, 'port', 443) : Arr::get($url_parts, 'port', 80);
+        $http_body = '';
+
+        if (in_array($request->method(), array(HTTP_Request::POST, HTTP_Request::PUT)))
+        {
+            if ( ! ($http_body = $request->body()))
+            {
+                $http_body = http_build_query($request->param());
+            }
+
+            $request->headers('Content-Length', strlen($http_body));
+        }
+
+        // Make sure we're telling the server we're closing the connection
+        $request->headers('Connection', 'Close');
+
+        $http_headers = array(
+            $request->method() . ' ' . Arr::get($url_parts, 'path', '/') . ' ' . HTTP::$protocol,
+            'Host: ' . $host,
+        );
+
+        foreach ($request->headers() as $key => $value)
+        {
+            $http_headers[] = $key . ': ' . $value;
+        }
+
+        // Build HTTP Request
+        $http_request = implode("\r\n", $http_headers);
+
+        if ( ! empty($http_body))
+        {
+            $http_request .= "\r\n\r\n" . $http_body;
+        }
+
+        // Make the request
+        if ($ssl)
+        {
+            $host = 'ssl://' . $host;
+        }
+
+        try
+        {
+            $fp = fsockopen($host, $port);
+        }
+        catch (Exception $e)
+        {
+            // Silently log the error and return
+            Kohana_Exception::log($e);
+            return $response;
+        }
+
+        fwrite($fp, $http_request);
+        fclose($fp);
+
+        // Return unmodified $response
+        return $response;
     }
 }
