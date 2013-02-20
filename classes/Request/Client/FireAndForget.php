@@ -56,11 +56,11 @@ class Request_Client_FireAndForget extends Request_Client_External {
         }
 
         // Build HTTP Request
-        $http_request = implode("\r\n", $http_headers);
+        $http_request = implode("\r\n", $http_headers) . "\r\n\r\n";
 
         if ( ! empty($http_body))
         {
-            $http_request .= "\r\n\r\n" . $http_body;
+            $http_request .= $http_body;
         }
 
         // Make the request
