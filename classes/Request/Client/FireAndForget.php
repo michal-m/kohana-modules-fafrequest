@@ -31,6 +31,12 @@ class Request_Client_FireAndForget extends Request_Client_External {
             {
                 $http_body = http_build_query($request->post());
                 $request->body($http_body);
+
+                // Make sure there is a Content-Type set
+                if ( ! $request->header('Content-Type'))
+                {
+                    $request->header('Content-Type', 'application/x-www-form-urlencoded');
+                }
             }
 
             $request->headers('Content-Length', strlen($http_body));
