@@ -9,7 +9,29 @@
  * @copyright  (c) 2013 Michał Musiał
  */
 class Request_Client_FireAndForget extends Request_Client_External {
-	/**
+
+    /**
+     * @var int Request timeout in settings
+     */
+    protected $_timeout = 30;
+
+    /**
+     * Getter and setter for the connection timeout property.
+     *
+     * @param type $timeout The connection timeout, in seconds.
+     * @return Request_Client
+     */
+    public function timeout($timeout)
+    {
+		if ($timeout === NULL)
+			return $this->_timeout;
+
+		$this->_timeout = $timeout;
+
+		return $this;
+    }
+
+    /**
 	 * Sends the HTTP message [Request] to a remote server and processes
 	 * the response.
 	 *
@@ -71,7 +93,7 @@ class Request_Client_FireAndForget extends Request_Client_External {
 
         try
         {
-            $fp = fsockopen($host, $port);
+            $fp = fsockopen($host, $port, $errno, $errstr, $this->_timeout);
         }
         catch (Exception $e)
         {
