@@ -40,7 +40,7 @@ class Request_Client_FireAndForget extends Request_Client_External {
 
         $http_headers = array(
             $request->method() . ' ' . Arr::get($url_parts, 'path', '/') . ' ' . HTTP::$protocol,
-            'Host: ' . $host,
+            'Host: ' . $host . (($ssl AND $port != 443 OR ! $ssl AND $port != 80) ? ':' . $port : ''),
         );
 
         foreach ($request->headers() as $key => $value)
