@@ -30,6 +30,7 @@ class Request_Client_FireAndForget extends Request_Client_External {
             if ( ! ($http_body = $request->body()))
             {
                 $http_body = http_build_query($request->param());
+                $request->body($http_body);
             }
 
             $request->headers('Content-Length', strlen($http_body));
