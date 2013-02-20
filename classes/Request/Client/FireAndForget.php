@@ -36,7 +36,7 @@ class Request_Client_FireAndForget extends Request_Client_External {
 	 * the response.
 	 *
 	 * @param   Request   $request  request to send
-	 * @param   Response  $request  response to send
+	 * @param   Response  $request  response to retrieve and return
 	 * @return  Response
 	 */
 	public function _send_message(Request $request, Response $response)
@@ -45,55 +45,26 @@ class Request_Client_FireAndForget extends Request_Client_External {
         $ssl = (Arr::get($url_parts, 'scheme') === 'https');
         $host = $url_parts['host'];
         $port = ($ssl) ? Arr::get($url_parts, 'port', 443) : Arr::get($url_parts, 'port', 80);
-        $http_body = '';
 
-        if (in_array($request->method(), array(HTTP_Request::POST, HTTP_Request::PUT)))
-        {
-            if ( ! ($http_body = $request->body()))
-            {
-                $http_body = http_build_query($request->post());
-                $request->body($http_body);
-
-                // Make sure there is a Content-Type set
-                if ( ! $request->header('Content-Type'))
-                {
-                    $request->header('Content-Type', 'application/x-www-form-urlencoded');
-                }
-            }
-
-            $request->headers('Content-Length', strlen($http_body));
-        }
+        // Split URL into host and path+query to ensure valid headers
+        $request->uri(Arr::get($url_parts, 'path', '/') . URL::query($request->query(), FALSE));
+        $request->headers('host', $host . (($ssl AND $port != 443 OR ! $ssl AND $port != 80) ? ':' . $port : ''));
 
         // Make sure we're telling the server we're closing the connection
-        $request->headers('Connection', 'Close');
+        // After all, it's Fire and *Forget*
+        $request->headers('connection', 'Close');
 
-        $http_headers = array(
-            $request->method() . ' ' . Arr::get($url_parts, 'path', '/') . ' ' . HTTP::$protocol,
-            'Host: ' . $host . (($ssl AND $port != 443 OR ! $ssl AND $port != 80) ? ':' . $port : ''),
-        );
-
-        foreach ($request->headers() as $key => $value)
-        {
-            $http_headers[] = ucfirst($key) . ': ' . $value;
-        }
-
-        // Build HTTP Request
-        $http_request = implode("\r\n", $http_headers) . "\r\n\r\n";
-
-        if ( ! empty($http_body))
-        {
-            $http_request .= $http_body;
-        }
-
-        // Make the request
-        if ($ssl)
-        {
-            $host = 'ssl://' . $host;
-        }
+        // Build and make the request
+        $http_request = $request->render();
 
         try
         {
-            $fp = fsockopen($host, $port, $errno, $errstr, $this->_timeout);
+            $fp = fsockopen(
+                    (($ssl) ? 'ssl://' . $host : $host),
+                    $port,
+                    $errno,
+                    $errstr,
+                    $this->_timeout);
         }
         catch (Exception $e)
         {
